@@ -10,6 +10,7 @@ def main_menu():
 
         if choice == '1':
             login()
+            print("test=================================================")
 
         elif choice == '2':
             register()

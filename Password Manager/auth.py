@@ -1,26 +1,31 @@
 import sqlite3
+import bcrypt
 
 
 def login():
-    print('Welcome back!')
-    username = input('Username: ')
-    master_password = input('Password: ')
+    while True:
+        print('Welcome back!')
+        username = input('Username: ')
+        master_password = input('Password: ')
 
-    user = get_user(username)
-    if user is None:
-        print("User does not exist!")
-    else:
-        user_id, db_username, db_password = user
-        if master_password == db_password:
-            print("Login successful!")
+        user = get_user(username)
+        if user is None:
+            print("User does not exist!")
         else:
-            print("Wrong password!")
+            user_id, db_username, db_password = user
+            if bcrypt.checkpw(master_password.encode(), db_password.encode()):
+                print("Login successful!")
+                break
+            else:
+                print("Wrong password!")
 
 
 def register():
     print('Welcome!')
     username = input('Username: ')
     master_password = input('Password: ')
+
+    hashed_password = hashing(master_password)
 
     # Connect to database
     conn = sqlite3.connect("database.db")
@@ -30,7 +35,7 @@ def register():
     cursor.execute("""
         INSERT INTO users (username, master_password)
         VALUES (?, ?)
-    """, (username, master_password))
+    """, (username, hashed_password))
 
     # Save changes
     conn.commit()
@@ -60,3 +65,8 @@ def get_user(username):
 
     return user   # returns (id, username, password) OR None
 
+def hashing(value):
+    value = value.encode()
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(value, salt)
+    return hashed.decode()
